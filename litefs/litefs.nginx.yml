@@ -1,0 +1,37 @@
+# This directory is where your application will access the database.
+fuse:
+  dir: "${LITEFS_DIR}"
+  # The debug flag enables debug logging of all FUSE API calls.
+  # This will produce a lot of logging. Not for general use.
+  # debug: true
+
+# This directory is where LiteFS will store internal data.
+# You must place this directory on a persistent volume.
+data:
+  # Path to internal data storage.
+  dir: "/data/litefs"
+
+# The lease section defines how LiteFS creates a cluster and
+# implements leader election. For dynamic clusters, use the
+# "consul". This allows the primary to change automatically when
+# the current primary goes down. For a simpler setup, use
+# "static" which assigns a single node to be the primary and does
+# not failover.
+lease:
+  # Required. Must be either "consul" or "static".
+  type: "static"
+
+  # Required. The URL for this node's LiteFS API.
+  # Should match HTTP port.
+  advertise-url: "http://primary:20202"
+
+  # Specifies whether the node can become the primary. If using
+  # "static" leasing, this should be set to true on the primary
+  # and false on the replicas.
+  candidate: ${FLY_REGION == 'primary'}
+
+exec:
+  - cmd: ./b
+    if-candidate: true
+
+  - cmd: ./a
