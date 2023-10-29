@@ -1,0 +1,46 @@
+version: '3.9'
+
+networks:
+  pastswift-network:
+
+services:
+  nginx:
+    container_name: pastswift-nginx
+    build:
+      context: ./nginx
+    ports:
+      - 8080:80
+    networks:
+      - pastswift-network
+
+  primary:
+    container_name: pastswift-primary
+    build:
+      context: .
+      target: local
+      args:
+        - LITEFS_CONFIG=litefs.nginx.yml
+    privileged: true
+    volumes:
+      - ./volumes/primary/data:/data
+    environment:
+      - FLY_REGION=primary
+    ports:
+      - 8081:8081
+    networks:
+      - pastswift-network
+
+  replica:
+    container_name: pastswift-replica
+    build:
+      context: .
+      target: local
+      args:
+        - LITEFS_CONFIG=litefs.nginx.yml
+    privileged: true
+    environment:
+      - FLY_REGION=replica
+    ports:
+      - 8082:8081
+    networks:
+      - pastswift-network
