@@ -1,0 +1,31 @@
+version: '3'
+
+tasks:
+  default:
+    desc: list all
+    cmds:
+      - task --list-all
+
+  cache:
+    desc: update cache
+    cmds:
+      - go fmt ./...
+      - go mod tidy
+
+  stop:
+    desc: stop services
+    cmds:
+      - docker-compose down --volumes
+    
+  start:
+    desc: start services
+    cmds:
+      - docker-compose up --build --force-recreate
+    deps:
+      - stop
+      - cache
+
+  test:
+    desc: run tests
+    cmds:
+      - go test -v -count 1 {{.CLI_ARGS}}
