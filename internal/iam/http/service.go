@@ -8,15 +8,17 @@ import (
 
 	"github.com/adoublef/past-swift/fly"
 	"github.com/adoublef/past-swift/internal/sessions"
+	o2 "github.com/adoublef/past-swift/oauth2"
+	"github.com/adoublef/past-swift/oauth2/github"
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/xid"
-	"golang.org/x/oauth2"
 )
 
 var _ http.Handler = (*Service)(nil)
 
 type Service struct {
 	m *chi.Mux
+	a *o2.Authenticator
 	s *sessions.Session
 }
 
@@ -28,6 +30,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func New(sessions *sessions.Session) *Service {
 	s := Service{
 		m: chi.NewMux(),
+		a: &o2.Authenticator{},
 		s: sessions,
 	}
 	s.routes()
@@ -35,6 +38,8 @@ func New(sessions *sessions.Session) *Service {
 }
 
 func (s *Service) routes() {
+	s.a.Configs().Set("github", github.NewConfig())
+
 	// site session exists
 	ssh := s.m.With(sessions.Redirect("/projects"))
 	ssh.Get("/", s.handleIndex())
@@ -59,35 +64,32 @@ func (s *Service) handleIndex() http.HandlerFunc {
 
 func (s *Service) handleSignIn() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// set oauth
-		_, err := s.s.OAuth().Set(w, r, oauth2.GenerateVerifier())
+		c, _ := s.a.Configs().Get("github")
+		url, err := s.a.SignIn(w, r, c)
 		if err != nil {
-			log.Println(err)
-			http.Error(w, "Failed to create oauth cookie", http.StatusInternalServerError)
+			http.Error(w, "Failed to create auth code url", http.StatusInternalServerError)
 			return
 		}
-		// redirect to callback
-		http.Redirect(w, r, "/callback", http.StatusFound)
+		http.Redirect(w, r, url, http.StatusFound)
 	}
 }
 
 func (s *Service) handleCallback() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// delete oauth
-		err := s.s.OAuth().Delete(w, r)
+		c, _ := s.a.Configs().Get("github")
+		ou, err := s.a.HandleCallback(w, r, c)
 		if err != nil {
 			log.Println(err)
-			http.Error(w, "Failed to delete oauth cookie", http.StatusInternalServerError)
+			http.Error(w, "Failed to complete auth flow", http.StatusUnauthorized)
 			return
 		}
-		// set site
+		fmt.Println(ou)
 		_, err = s.s.Site().Set(w, r, xid.New())
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Failed to set site cookie", http.StatusInternalServerError)
 			return
 		}
-		// redirect to home
 		http.Redirect(w, r, "/", http.StatusFound)
 	}
 }
