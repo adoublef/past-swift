@@ -2,9 +2,18 @@ package oauth2
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
+	"fmt"
+	"slices"
+	"strings"
 
 	"golang.org/x/oauth2"
+)
+
+var (
+	_ fmt.Stringer  = (ID{})
+	_ driver.Valuer = (*ID)(nil)
 )
 
 type ID struct {
@@ -12,6 +21,26 @@ type ID struct {
 	Provider string
 	// UserID is the id returned by the oauth2 service
 	UserID string
+}
+
+// TODO implement scanner
+
+// Value implements driver.Valuer.
+func (i ID) Value() (driver.Value, error) {
+	p := strings.ToLower(i.Provider)
+	// TODO validate that provider is valid
+	ok := slices.Contains([]string{"github", "google"}, p)
+	if !ok {
+		return nil, errors.New("invalid provider")
+	}
+	return i.String(), nil
+}
+
+// String implements Stringer
+func (i ID) String() string { return i.Provider + "|" + i.UserID }
+
+func NewID(provider, value string) ID {
+	return ID{Provider: provider, UserID: value}
 }
 
 type UserInfo struct {
