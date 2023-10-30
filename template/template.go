@@ -14,20 +14,19 @@ import (
 	"html/template"
 	"io"
 	"io/fs"
+	"net/http"
 	"os"
-	"path/filepath"
 )
 
 type FS struct {
 	fsys     fs.FS
-	root     string
 	t        *template.Template
 	patterns []string
 }
 
-func NewFS(fsys fs.FS, root string, patterns ...string) *FS {
+func NewFS(fsys fs.FS, patterns ...string) *FS {
 	// patterns go here
-	return &FS{fsys: fsys, root: root, t: template.New("")}
+	return &FS{fsys: fsys, patterns: patterns, t: template.New("")}
 }
 
 func (fsys *FS) Funcs(funcMap template.FuncMap) *FS {
@@ -36,9 +35,8 @@ func (fsys *FS) Funcs(funcMap template.FuncMap) *FS {
 }
 
 func (fsys *FS) Parse() (*template.Template, error) {
-	patterns := []string{filepath.Join(fsys.root, "*.html")}
 	// make `builtins` doOnce
-	return fsys.t.Funcs(builtins()).ParseFS(fsys.fsys, patterns...)
+	return fsys.t.Funcs(builtins).ParseFS(fsys.fsys, fsys.patterns...)
 }
 
 type Template struct {
@@ -49,30 +47,35 @@ func (t *Template) Execute(wr io.Writer, name string, data any) error {
 	return t.t.ExecuteTemplate(wr, name, data)
 }
 
-// func (fsys *FS) ExecuteTemplate() {}
-
 // builtins adds default functions to be used in a template.
 //
 //   - Map allows for a map to be passed into the pipeline inline of a template.
-var builtins = func() template.FuncMap {
-	return template.FuncMap{
-		"map": func(pairs ...any) (map[string]any, error) {
-			if len(pairs)%2 != 0 {
-				return nil, errors.New("misaligned map")
-			}
-			m := make(map[string]any, len(pairs)/2)
+var builtins = template.FuncMap{
+	"map": func(pairs ...any) (map[string]any, error) {
+		if len(pairs)%2 != 0 {
+			return nil, errors.New("misaligned map")
+		}
+		m := make(map[string]any, len(pairs)/2)
 
-			for i := 0; i < len(pairs); i += 2 {
-				key, ok := pairs[i].(string)
-				if !ok {
-					return nil, fmt.Errorf("cannot use type %T as map key", pairs[i])
-				}
-				m[key] = pairs[i+1]
+		for i := 0; i < len(pairs); i += 2 {
+			key, ok := pairs[i].(string)
+			if !ok {
+				return nil, fmt.Errorf("cannot use type %T as map key", pairs[i])
 			}
-			return m, nil
-		},
-		"env": func(key string) string {
-			return os.Getenv(key)
-		},
+			m[key] = pairs[i+1]
+		}
+		return m, nil
+	},
+	"env": func(key string) string {
+		return os.Getenv(key)
+	},
+}
+
+func ExecuteHTTP(w http.ResponseWriter, r *http.Request, t *template.Template, name string, data any) {
+	err := t.ExecuteTemplate(w, name, data)
+	if err != nil {
+		// log.Println(err)
+		http.Error(w, "Writing template error", http.StatusInternalServerError)
+		return
 	}
 }
