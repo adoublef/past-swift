@@ -22,9 +22,7 @@ import (
 
 //go:embed all:partials/*.html
 var embedFS embed.FS
-var T = tpl.NewFS(embedFS, "partials")
-
-// FIXME move to another package
+var T = tpl.NewFS(embedFS, "partials/*.html")
 
 var _ http.Handler = (*Service)(nil)
 
@@ -32,7 +30,7 @@ type Service struct {
 	m  *chi.Mux
 	a  *o2.Authenticator
 	db *sql.DB
-	T  *template.Template
+	t  *template.Template
 }
 
 // ServeHTTP implements http.Handler.
@@ -49,7 +47,7 @@ func New(dsn string, templates *template.Template) (*Service, error) {
 		m:  chi.NewMux(),
 		a:  &o2.Authenticator{},
 		db: db,
-		T:  templates,
+		t:  templates,
 	}
 	s.routes()
 	return &s, nil
@@ -70,12 +68,7 @@ func (s *Service) routes() {
 
 func (s *Service) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := s.T.ExecuteTemplate(w, "index.html", nil)
-		if err != nil {
-			// log.Println(err)
-			http.Error(w, "Writing template error", http.StatusInternalServerError)
-			return
-		}
+		tpl.ExecuteHTTP(w, r, s.t, "index.html", nil)
 	}
 }
 
