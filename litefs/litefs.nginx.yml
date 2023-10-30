@@ -34,4 +34,4 @@ exec:
   - cmd: ./b
     if-candidate: true
 
-  - cmd: ./a
+  - cmd: infisical run --env=dev --path=/past-swift -- ./a
