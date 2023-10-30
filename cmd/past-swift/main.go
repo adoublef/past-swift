@@ -34,16 +34,24 @@ func main() {
 }
 
 func run(ctx context.Context) (err error) {
-	mux := chi.NewMux()
-	// iam
+	// session
 	ss, err := sessions.NewSession(ctx, os.Getenv("DATABASE_URL_SESSIONS"))
 	if err != nil {
 		return err
 	}
-	mux.Mount("/", iamHTTP.New(ss))
+	mux := chi.NewMux()
+	// iam
+	{
+		iam, err := iamHTTP.New(os.Getenv("DATABASE_URL"))
+		if err != nil {
+			return err
+		}
+		mux.Mount("/", iam)
+	}
 	// projects
-	mux.Mount("/projects", prjHTTP.New())
-
+	{
+		mux.Mount("/projects", prjHTTP.New())
+	}
 	s := &http.Server{
 		Addr:    ":" + os.Getenv("PORT"),
 		Handler: mux,

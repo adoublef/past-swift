@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	iamDB "github.com/adoublef/past-swift/internal/iam/sqlite3"
 	"github.com/adoublef/past-swift/internal/sessions"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -28,6 +29,11 @@ func main() {
 }
 
 func run(ctx context.Context) (err error) {
+	// migration for `iam` module
+	err = iamDB.Up(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		return err
+	}
 	// migrations for `session` module
 	ss, err := sessions.NewSession(ctx, os.Getenv("DATABASE_URL_SESSIONS"))
 	if err != nil {
