@@ -1,0 +1,13 @@
+body {
+    color-scheme: light;
+    font-family: system-ui;
+    background-color: aquamarine;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color-scheme: dark;
+        color: black;
+        background-color: darkslategrey;
+    }
+}
