@@ -7,7 +7,7 @@ import (
 	"embed"
 
 	"github.com/adoublef/past-swift/internal/iam"
-	"github.com/adoublef/past-swift/oauth2"
+	"github.com/adoublef/past-swift/internal/oauth2"
 	"github.com/adoublef/past-swift/sqlite3"
 )
 

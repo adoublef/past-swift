@@ -8,13 +8,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/adoublef/past-swift/fly"
 	"github.com/adoublef/past-swift/internal/iam"
 	"github.com/adoublef/past-swift/internal/iam/sqlite3"
+	o2 "github.com/adoublef/past-swift/internal/oauth2"
+	"github.com/adoublef/past-swift/internal/oauth2/github"
 	"github.com/adoublef/past-swift/internal/sessions"
-	o2 "github.com/adoublef/past-swift/oauth2"
-	"github.com/adoublef/past-swift/oauth2/github"
 	s3 "github.com/adoublef/past-swift/sqlite3"
 	tpl "github.com/adoublef/past-swift/template"
 	"github.com/go-chi/chi/v5"
@@ -117,7 +118,7 @@ func (s *Service) handleCallback() http.HandlerFunc {
 		if found != nil {
 			id = found.ID
 		}
-		_, err = session.Site().Set(w, r, id)
+		_, err = session.Set(w, r, sessions.SessionSite, id.String(), 24*time.Hour)
 		if err != nil {
 			log.Println(err)
 			http.Error(w, "Failed to set site cookie", http.StatusInternalServerError)
@@ -134,7 +135,7 @@ func (s *Service) handleSignOut() http.HandlerFunc {
 			session = sessions.FromContext(ctx)
 		)
 		// delete site
-		defer session.Site().Delete(w, r)
+		defer session.Delete(w, r, sessions.SessionSite)
 		// redirect to home
 		http.Redirect(w, r, "/", http.StatusFound)
 	}

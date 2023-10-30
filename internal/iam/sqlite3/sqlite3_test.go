@@ -9,7 +9,7 @@ import (
 
 	"github.com/adoublef/past-swift/internal/iam"
 	"github.com/adoublef/past-swift/internal/iam/sqlite3"
-	"github.com/adoublef/past-swift/oauth2"
+	"github.com/adoublef/past-swift/internal/oauth2"
 	s3 "github.com/adoublef/past-swift/sqlite3"
 	_ "github.com/mattn/go-sqlite3"
 	is "github.com/stretchr/testify/require"

@@ -1,7 +1,7 @@
 package iam
 
 import (
-	"github.com/adoublef/past-swift/oauth2"
+	"github.com/adoublef/past-swift/internal/oauth2"
 	"github.com/rs/xid"
 )
 
