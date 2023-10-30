@@ -44,9 +44,7 @@ func run(ctx context.Context) (err error) {
 	mux := chi.NewMux()
 	// iam
 	{
-		// NOTE should allow passing extra funcs for teh funcMap
-		// ExecuteTemplate(wr io.Writer, name string, data any)
-		t, err := iamHTTP.T.Funcs(static.FuncMap).Parse()
+		t, err := iamHTTP.T.Funcs(static.FuncMap("/static")).Parse()
 		if err != nil {
 			return err
 		}
@@ -58,11 +56,15 @@ func run(ctx context.Context) (err error) {
 	}
 	// projects
 	{
-		mux.Mount("/projects", prjHTTP.New())
+		t, err := prjHTTP.T.Funcs(static.FuncMap("/static")).Parse()
+		if err != nil {
+			return err
+		}
+		mux.Mount("/projects", prjHTTP.New(t))
 	}
 	// static
 	{
-		mux.Handle("/static/*", static.Handler("/static/"))
+		mux.Handle("/static/*", static.Handler("/static"))
 	}
 	s := &http.Server{
 		Addr:    ":" + env.WithValue("PORT", "8080"),
