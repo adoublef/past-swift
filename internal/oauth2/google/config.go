@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	o2 "github.com/adoublef/past-swift/oauth2"
+	o2 "github.com/adoublef/past-swift/internal/oauth2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

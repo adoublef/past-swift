@@ -31,7 +31,7 @@ func (a Authenticator) SignIn(w http.ResponseWriter, r *http.Request, c Config) 
 		state   = oauth2.GenerateVerifier()
 	)
 	// get session store from context
-	_, err = session.OAuth().Set(w, r, state)
+	_, err = session.Set(w, r, sessions.SessionOAuth, state, 10*time.Minute)
 	if err != nil {
 		return "", err
 	}
@@ -45,11 +45,11 @@ func (a Authenticator) HandleCallback(w http.ResponseWriter, r *http.Request, p 
 		session = sessions.FromContext(ctx)
 	)
 	// get cookie
-	state, err := session.OAuth().Get(w, r)
+	state, err := session.Get(w, r, sessions.SessionOAuth)
 	if err != nil {
 		return nil, err
 	}
-	defer session.OAuth().Delete(w, r)
+	defer session.Delete(w, r, sessions.SessionOAuth)
 	// compare with url of state on request
 	if !compare(state, r.FormValue("state")) {
 		return nil, errors.New("state value mismatch")
