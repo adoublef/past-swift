@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/adoublef/past-swift/internal/sessions"
 	"github.com/adoublef/past-swift/sqlite3"
@@ -29,7 +30,7 @@ func TestSession(t *testing.T) {
 				profile = xid.New()
 			)
 			// set
-			session, err := s.Site().Set(w, r, profile)
+			session, err := s.Set(w, r, sessions.SessionSite, profile.String(), 24*time.Hour)
 			is.NoError(t, err)
 
 			c := w.Result().Cookies()[0]
@@ -45,13 +46,13 @@ func TestSession(t *testing.T) {
 				profile = xid.New()
 			)
 			// set
-			_, err := s.Site().Set(w, r, profile)
+			_, err := s.Set(w, r, sessions.SessionSite, profile.String(), 24*time.Hour)
 			is.NoError(t, err)
 			r.AddCookie(w.Result().Cookies()[0])
 			// get
-			found, err := s.Site().Get(w, r)
+			found, err := s.Get(w, r, sessions.SessionSite)
 			is.NoError(t, err)
-			is.Equal(t, found, profile)
+			is.Equal(t, found, profile.String())
 		})
 	}))
 
@@ -63,7 +64,7 @@ func TestSession(t *testing.T) {
 			// set
 			w, r := newTestServer(true)
 			{
-				_, err := s.Site().Set(w, r, profile)
+				_, err := s.Set(w, r, sessions.SessionSite, profile.String(), 24*time.Hour)
 				is.NoError(t, err)
 				c := w.Result().Cookies()[0]
 				is.Equal(t, 86400, c.MaxAge)
@@ -74,14 +75,14 @@ func TestSession(t *testing.T) {
 				w, r = newTestServer(true)
 				r.AddCookie(sc)
 
-				err := s.Site().Delete(w, r)
+				err := s.Delete(w, r, sessions.SessionSite)
 				is.NoError(t, err)
 				// check
 				c := w.Result().Cookies()[0]
 				is.True(t, strings.HasPrefix(c.Name, "_Host-"))
 				is.Equal(t, "", c.Value)
 				// not working
-				// is.Equal(t, -1, c.MaxAge)
+				is.Equal(t, -1, c.MaxAge)
 			}
 		})
 	}))

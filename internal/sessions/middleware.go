@@ -38,7 +38,7 @@ func Redirect(url string) func(f http.Handler) http.Handler {
 	return func(f http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var s = FromContext(r.Context())
-			if _, err := s.Site().Get(w, r); err != nil {
+			if _, err := s.Get(w, r, SessionSite); err != nil {
 				f.ServeHTTP(w, r)
 			} else {
 				http.Redirect(w, r, url, http.StatusFound)
@@ -52,7 +52,7 @@ func Protected() func(f http.Handler) http.Handler {
 	return func(f http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var s = FromContext(r.Context())
-			if _, err := s.Site().Get(w, r); err != nil {
+			if _, err := s.Get(w, r, SessionSite); err != nil {
 				http.Redirect(w, r, "/", http.StatusFound)
 			} else {
 				f.ServeHTTP(w, r)

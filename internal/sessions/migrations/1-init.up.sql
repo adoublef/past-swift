@@ -1,13 +1,8 @@
--- used during the oauth process
-CREATE TABLE oauth (
+CREATE TABLE sessions (
     `id` TEXT,
-    `state` TEXT NOT NULL,
-    PRIMARY KEY (id, state)
-);
--- used for signed in users
-CREATE TABLE site (
-    `id` TEXT,
-    `profile` TEXT NOT NULL,
+    -- i.e cookie name 'oauth', 'site'
+    `name` TEXT NOT NULL,
+    `value` TEXT NOT NULL,
     --
-    PRIMARY KEY (id, profile)
+    PRIMARY KEY(id)
 );
