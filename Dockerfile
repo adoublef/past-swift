@@ -39,10 +39,14 @@ WORKDIR /opt
 
 ARG LITEFS_CONFIG="litefs.yml"
 ENV LITEFS_DIR="/litefs"
-ENV DATABASE_URL="${LITEFS_DIR}/database.db"
+ENV DATABASE_URL="${LITEFS_DIR}/iam.db"
 ENV DATABASE_URL_SESSIONS="${LITEFS_DIR}/sessions.db"
 ENV INTERNAL_PORT=8080
 ENV PORT=8081
+# FIXME don't commit
+ENV GITHUB_CLIENT_ID="Iv1.664449609ee562f8"
+ENV GITHUB_CLIENT_SECRET="c4be22578e4ddf1f154d16f177f294331333c07d"
+ENV HOSTNAME="http://localhost:8080"
 
 # copy binary from build
 COPY --from=build /usr/bin/a /usr/bin/b ./
