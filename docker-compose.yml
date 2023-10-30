@@ -25,6 +25,7 @@ services:
       - ./volumes/primary/data:/data
     environment:
       - FLY_REGION=primary
+      - INFISICAL_TOKEN=${INFISICAL_TOKEN}
     ports:
       - 8081:8081
     networks:
@@ -40,6 +41,7 @@ services:
     privileged: true
     environment:
       - FLY_REGION=replica
+      - INFISICAL_TOKEN=${INFISICAL_TOKEN}
     ports:
       - 8082:8081
     networks:
