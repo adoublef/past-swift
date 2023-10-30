@@ -2,8 +2,9 @@ package http
 
 import (
 	"database/sql"
+	"embed"
 	"errors"
-	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -15,8 +16,15 @@ import (
 	o2 "github.com/adoublef/past-swift/oauth2"
 	"github.com/adoublef/past-swift/oauth2/github"
 	s3 "github.com/adoublef/past-swift/sqlite3"
+	tpl "github.com/adoublef/past-swift/template"
 	"github.com/go-chi/chi/v5"
 )
+
+//go:embed all:partials/*.html
+var embedFS embed.FS
+var T = tpl.NewFS(embedFS, "partials")
+
+// FIXME move to another package
 
 var _ http.Handler = (*Service)(nil)
 
@@ -24,6 +32,7 @@ type Service struct {
 	m  *chi.Mux
 	a  *o2.Authenticator
 	db *sql.DB
+	T  *template.Template
 }
 
 // ServeHTTP implements http.Handler.
@@ -31,7 +40,7 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.m.ServeHTTP(w, r)
 }
 
-func New(dsn string) (*Service, error) {
+func New(dsn string, templates *template.Template) (*Service, error) {
 	db, err := s3.Open(dsn)
 	if err != nil {
 		return nil, err
@@ -40,6 +49,7 @@ func New(dsn string) (*Service, error) {
 		m:  chi.NewMux(),
 		a:  &o2.Authenticator{},
 		db: db,
+		T:  templates,
 	}
 	s.routes()
 	return &s, nil
@@ -60,13 +70,12 @@ func (s *Service) routes() {
 
 func (s *Service) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		body := fmt.Sprintf(`
-			<a href="/">Home</a>
-			<a href="/signin">Sign in with GitHub</a>
-			<p>Region: %s</p>
-		`, os.Getenv("FLY_REGION"))
-
-		w.Write([]byte(body))
+		err := s.T.ExecuteTemplate(w, "index.html", nil)
+		if err != nil {
+			// log.Println(err)
+			http.Error(w, "Writing template error", http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -132,7 +141,7 @@ func (s *Service) handleSignOut() http.HandlerFunc {
 			session = sessions.FromContext(ctx)
 		)
 		// delete site
-		go session.Site().Delete(w, r)
+		defer session.Site().Delete(w, r)
 		// redirect to home
 		http.Redirect(w, r, "/", http.StatusFound)
 	}

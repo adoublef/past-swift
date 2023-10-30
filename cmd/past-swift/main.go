@@ -10,9 +10,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/adoublef/past-swift/env"
 	iamHTTP "github.com/adoublef/past-swift/internal/iam/http"
 	prjHTTP "github.com/adoublef/past-swift/internal/projects/http"
 	"github.com/adoublef/past-swift/internal/sessions"
+	"github.com/adoublef/past-swift/static"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -42,7 +44,13 @@ func run(ctx context.Context) (err error) {
 	mux := chi.NewMux()
 	// iam
 	{
-		iam, err := iamHTTP.New(os.Getenv("DATABASE_URL"))
+		// NOTE should allow passing extra funcs for teh funcMap
+		// ExecuteTemplate(wr io.Writer, name string, data any)
+		t, err := iamHTTP.T.Funcs(static.FuncMap).Parse()
+		if err != nil {
+			return err
+		}
+		iam, err := iamHTTP.New(env.Must("DATABASE_URL"), t)
 		if err != nil {
 			return err
 		}
@@ -52,8 +60,12 @@ func run(ctx context.Context) (err error) {
 	{
 		mux.Mount("/projects", prjHTTP.New())
 	}
+	// static
+	{
+		mux.Handle("/static/*", static.Handler("/static/"))
+	}
 	s := &http.Server{
-		Addr:    ":" + os.Getenv("PORT"),
+		Addr:    ":" + env.WithValue("PORT", "8080"),
 		Handler: mux,
 		BaseContext: func(l net.Listener) context.Context {
 			return sessions.WithSession(ctx, ss)
@@ -72,3 +84,22 @@ func run(ctx context.Context) (err error) {
 		return s.Shutdown(context.Background())
 	}
 }
+
+/*
+-- iam
+/
+/signin/{provider.id}
+/callback/{provider.id}
+/signout
+/@{profile.login}
+/profile/settings
+-- projects
+/projects
+/projects/{project.id}
+/projects/{project.id}/invite
+/projects/{project.id}/join
+-- static
+/static/*
+-- media
+/media/track/{media.id}
+*/
