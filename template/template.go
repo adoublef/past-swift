@@ -18,9 +18,18 @@ import (
 	"os"
 )
 
+type Template interface {
+	Execute(wr io.Writer, data any) error
+	ExecuteTemplate(wr io.Writer, name string, data any) error
+	Funcs(funcMap template.FuncMap) *template.Template
+	// Lookup(name string) *template.Template
+	// New(name string) *template.Template
+	ParseFS(fs fs.FS, patterns ...string) (*template.Template, error)
+}
+
 type FS struct {
 	fsys     fs.FS
-	t        *template.Template
+	t        Template
 	patterns []string
 }
 
@@ -34,17 +43,9 @@ func (fsys *FS) Funcs(funcMap template.FuncMap) *FS {
 	return fsys
 }
 
-func (fsys *FS) Parse() (*template.Template, error) {
+func (fsys *FS) Parse() (Template, error) {
 	// make `builtins` doOnce
 	return fsys.t.Funcs(builtins).ParseFS(fsys.fsys, fsys.patterns...)
-}
-
-type Template struct {
-	t *template.Template
-}
-
-func (t *Template) Execute(wr io.Writer, name string, data any) error {
-	return t.t.ExecuteTemplate(wr, name, data)
 }
 
 // builtins adds default functions to be used in a template.
@@ -71,7 +72,7 @@ var builtins = template.FuncMap{
 	},
 }
 
-func ExecuteHTTP(w http.ResponseWriter, r *http.Request, t *template.Template, name string, data any) {
+func ExecuteHTTP(w http.ResponseWriter, r *http.Request, t Template, name string, data any) {
 	err := t.ExecuteTemplate(w, name, data)
 	if err != nil {
 		// log.Println(err)
