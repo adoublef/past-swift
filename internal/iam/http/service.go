@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"embed"
 	"errors"
-	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -12,26 +11,26 @@ import (
 
 	"github.com/adoublef/past-swift/fly"
 	"github.com/adoublef/past-swift/internal/iam"
-	"github.com/adoublef/past-swift/internal/iam/sqlite3"
+	iamDB "github.com/adoublef/past-swift/internal/iam/sqlite3"
 	o2 "github.com/adoublef/past-swift/internal/oauth2"
 	"github.com/adoublef/past-swift/internal/oauth2/github"
 	"github.com/adoublef/past-swift/internal/sessions"
-	s3 "github.com/adoublef/past-swift/sqlite3"
-	tpl "github.com/adoublef/past-swift/template"
+	"github.com/adoublef/past-swift/sqlite3"
+	"github.com/adoublef/past-swift/template"
 	"github.com/go-chi/chi/v5"
 )
 
 //go:embed all:partials/*.html
 var embedFS embed.FS
-var T = tpl.NewFS(embedFS, "partials/*.html")
+var T = template.NewFS(embedFS, "partials/*.html")
 
 var _ http.Handler = (*Service)(nil)
 
 type Service struct {
 	m  *chi.Mux
 	a  *o2.Authenticator
-	db *sql.DB
-	t  *template.Template
+	db sqlite3.DB
+	t  template.Template
 }
 
 // ServeHTTP implements http.Handler.
@@ -39,8 +38,8 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.m.ServeHTTP(w, r)
 }
 
-func New(dsn string, templates *template.Template) (*Service, error) {
-	db, err := s3.Open(dsn)
+func New(dsn string, templates template.Template) (*Service, error) {
+	db, err := sqlite3.Open(dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +68,7 @@ func (s *Service) routes() {
 
 func (s *Service) handleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tpl.ExecuteHTTP(w, r, s.t, "index.html", nil)
+		template.ExecuteHTTP(w, r, s.t, "index.html", nil)
 	}
 }
 
@@ -101,15 +100,14 @@ func (s *Service) handleCallback() http.HandlerFunc {
 			return
 		}
 		u := iam.NewUser(info.ID, info.Login, info.Photo, info.Name)
-		found, err := sqlite3.ExistingProfile(ctx, db, info.ID)
+		found, err := iamDB.ExistingProfile(ctx, db, info.ID)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			if err := sqlite3.RegisterUser(ctx, db, u); err != nil {
+			if err := iamDB.RegisterUser(ctx, db, u); err != nil {
 				http.Error(w, "Failed to register user", http.StatusInternalServerError)
 				return
 			}
 		case err != nil:
-			log.Println(err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
@@ -120,7 +118,6 @@ func (s *Service) handleCallback() http.HandlerFunc {
 		}
 		_, err = session.Set(w, r, sessions.SessionSite, id.String(), 24*time.Hour)
 		if err != nil {
-			log.Println(err)
 			http.Error(w, "Failed to set site cookie", http.StatusInternalServerError)
 			return
 		}
@@ -135,7 +132,7 @@ func (s *Service) handleSignOut() http.HandlerFunc {
 			session = sessions.FromContext(ctx)
 		)
 		// delete site
-		defer session.Delete(w, r, sessions.SessionSite)
+		session.Delete(w, r, sessions.SessionSite)
 		// redirect to home
 		http.Redirect(w, r, "/", http.StatusFound)
 	}

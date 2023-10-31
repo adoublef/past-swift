@@ -5,14 +5,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏃🏿‍♂️ Past Swift</title>
+    <!-- css -->
     <link rel="stylesheet" href="{{static "css/styles.css"}}">
+    <!-- scripts -->
+    <link rel="preload" as="script" href="{{static "js/htmx.min.js"}}">
+    <script src="{{static "js/htmx.min.js"}}" defer></script>
+    <link rel="preload" as="script" href="{{static "js/hyperscript.min.js"}}">
+    <script src="{{static "js/hyperscript.min.js"}}" defer></script>
 </head>
 <body>
     <header>
-        <a href="/">Home</a>
-        <a href="/signin">Sign in with GitHub</a>
+        <nav>
+            <ul>
+                <li>
+                    <a href="/">Home</a>
+                </li>
+                <li>
+                    <a href="/design">Design</a>
+                </li>
+                <li>
+                    <a href="/signin">Sign in with GitHub</a>
+                </li>
+            </ul>
+        </nav>
     </header>
     <main>{{template "main" .}}</main>
+    <footer>
+        <small>
+            Powered by <a href="https://go.dev">Golang</a>.
+            Source code <a href="https://github.com/adoublef/past-swift">available on GitHub</a>
+        </small>
+    </footer>
 </body>
 </html>
 {{end}}
