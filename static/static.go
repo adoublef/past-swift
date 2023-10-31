@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	//go:embed all:css/*.css
+	//go:embed all:css/*.css all:js/*.js all:fonts/**/*.woff2
 	embedFS embed.FS
 	hashFS  = hashfs.NewFS(embedFS)
 )
@@ -27,7 +27,3 @@ var FuncMap = func(prefix string) template.FuncMap {
 		},
 	}
 }
-
-/*
-func (s Static) ServeHTTP(w, r)
-*/

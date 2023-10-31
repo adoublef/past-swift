@@ -1,13 +1,172 @@
-body {
-    color-scheme: light;
-    font-family: system-ui;
-    background-color: aquamarine;
+/* 
+@link https://www.joshwcomeau.com/css/surprising-truth-about-pixels-and-accessibility/
+@link https://www.scottohara.me/blog/2018/03/03/landmarks.html
+@link https://design.google/library/lexend-readability
+@link https://downloads.reciteme.com/hubfs/accessible_fonts_guide.pdf
+*/
+
+/* Base */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-    body {
-        color-scheme: dark;
-        color: black;
-        background-color: darkslategrey;
-    }
+* {
+    margin: 0;
+    padding: 0;
+    font: inherit;
 }
+
+img,
+picture,
+svg,
+video {
+    display: block;
+    max-width: 100%;
+}
+
+html {
+    color-scheme: light dark;
+}
+
+/* ./Base */
+
+/* Typography */
+@font-face {
+    /* @link https://www.ibm.com/plex/ */
+    font-family: 'Lexend';
+    src: url('/static/fonts/v/lexend.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: optional;
+    /* auto | block | swap | fallback | optional */
+}
+
+@font-face {
+    /* @link https://www.ibm.com/plex/ */
+    font-family: 'Lexend';
+    src: url('/static/fonts/v/lexend.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: optional;
+    /* auto | block | swap | fallback | optional */
+}
+
+:root {
+    /* @link https://utopia.fyi/type/calculator?c=320,16,1.125,1440,18,1.333,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+    --font-size-200: clamp(0.6331rem, 0.8348rem + -0.2241vw, 0.79rem);
+    --font-size-300: clamp(0.8438rem, 0.9016rem + -0.0643vw, 0.8888rem);
+    --font-size-400: clamp(1rem, 0.9643rem + 0.1786vw, 1.125rem);
+    --font-size-500: clamp(1.125rem, 1.018rem + 0.5348vw, 1.4994rem);
+    --font-size-600: clamp(1.2656rem, 1.0562rem + 1.0473vw, 1.9988rem);
+    --font-size-700: clamp(1.4238rem, 1.0693rem + 1.7723vw, 2.6644rem);
+    --font-size-800: clamp(1.6019rem, 1.0447rem + 2.7857vw, 3.5519rem);
+    --font-size-900: clamp(1.8019rem, 0.9638rem + 4.1902vw, 4.735rem);
+    /* @link https://www.fontshare.com/pairs */
+    /* @link https://lettersfromsweden.se/ableton/ */
+    --font-family-400: 'Lexend', system-ui;
+    --font-family-700: 'Lexend', system-ui;
+}
+
+* {
+    --_font-family: var(--font-family, var(--font-family-400));
+    --_font-weight: var(--font-weight, 400);
+    --_font-size: var(--font-size, var(--font-size-400));
+    --_line-height: var(--line-height, 1.5);
+    --_text-wrap: var(--text-wrap, pretty);
+
+    font-family: var(--_font-family);
+    font-weight: var(--_font-weight);
+    font-size: var(--_font-size);
+    line-height: var(--_line-height);
+    text-wrap: var(--_text-wrap);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    --font-family: var(--font-family-700);
+    --line-height: 1.3;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong {
+    --font-weight: 700;
+}
+
+h1 {
+    --font-size: var(--font-size-900);
+}
+
+h2 {
+    --font-size: var(--font-size-800);
+}
+
+h3 {
+    --font-size: var(--font-size-700);
+}
+
+h4 {
+    --font-size: var(--font-size-600);
+}
+
+h5 {
+    --font-size: var(--font-size-500);
+}
+
+h6 {
+    --font-size: var(--font-size-400);
+}
+
+cite {
+    --font-size: var(--font-size-300);
+}
+
+small,
+sub,
+sup {
+    --font-size: var(--font-size-200);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    --text-wrap: balance;
+}
+
+/* ./Typography */
+
+/* Color */
+/* ./Color */
+
+/* Composition  */
+:where(body, .body) {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+}
+
+:where(main, .main) {
+    width: min(100% - 3rem, 65ch);
+    margin-inline: auto;
+}
+
+:where(article, .article, section, .section)>*+* {
+    margin-top: 1em;
+}
+
+/* ./Composition  */
