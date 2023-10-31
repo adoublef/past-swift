@@ -34,23 +34,35 @@ html {
 
 /* Typography */
 @font-face {
-    /* @link https://www.ibm.com/plex/ */
     font-family: 'Lexend';
     src: url('/static/fonts/v/lexend.woff2') format('woff2');
     font-weight: 700;
     font-style: normal;
     font-display: optional;
-    /* auto | block | swap | fallback | optional */
 }
 
 @font-face {
-    /* @link https://www.ibm.com/plex/ */
     font-family: 'Lexend';
     src: url('/static/fonts/v/lexend.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: optional;
-    /* auto | block | swap | fallback | optional */
+}
+
+@font-face {
+    font-family: 'Raleway';
+    src: url('/static/fonts/v/raleway.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+    font-display: optional;
+}
+
+@font-face {
+    font-family: 'Raleway';
+    src: url('/static/fonts/v/raleway.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: optional;
 }
 
 :root {
@@ -65,7 +77,7 @@ html {
     --font-size-900: clamp(1.8019rem, 0.9638rem + 4.1902vw, 4.735rem);
     /* @link https://www.fontshare.com/pairs */
     /* @link https://lettersfromsweden.se/ableton/ */
-    --font-family-400: 'Lexend', system-ui;
+    --font-family-400: 'Raleway', system-ui;
     --font-family-700: 'Lexend', system-ui;
 }
 
