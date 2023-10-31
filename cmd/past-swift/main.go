@@ -41,6 +41,7 @@ func run(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+	ctx = sessions.WithSession(ctx, ss)
 	mux := chi.NewMux()
 	// iam
 	{
@@ -66,11 +67,19 @@ func run(ctx context.Context) (err error) {
 	{
 		mux.Handle("/static/*", static.Handler("/static"))
 	}
+	// design
+	{
+		t, err := T.Funcs(static.FuncMap("/static")).Parse()
+		if err != nil {
+			return err
+		}
+		mux.Get("/design", handleDesign(t))
+	}
 	s := &http.Server{
 		Addr:    ":" + env.WithValue("PORT", "8080"),
 		Handler: mux,
 		BaseContext: func(l net.Listener) context.Context {
-			return sessions.WithSession(ctx, ss)
+			return ctx
 		},
 	}
 	sErr := make(chan error)
