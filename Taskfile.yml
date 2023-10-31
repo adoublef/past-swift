@@ -29,3 +29,9 @@ tasks:
     desc: run tests
     cmds:
       - go test -v -count 1 {{.CLI_ARGS}}
+
+  htmx:
+    desc: install latest htmx scripts
+    cmds:
+      - curl -L -o static/js/htmx.min.js https://unpkg.com/htmx.org@latest/dist/htmx.min.js
+      - curl -L -o static/js/hyperscript.min.js https://unpkg.com/hyperscript.org@latest/dist/_hyperscript.min.js
