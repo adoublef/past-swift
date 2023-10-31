@@ -3,7 +3,6 @@ package sqlite3
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 
 	"github.com/adoublef/past-swift/internal/iam"
@@ -25,7 +24,7 @@ func Up(ctx context.Context, dsn string) (err error) {
 }
 
 // RegisterUser will add rows to the database to register a new user
-func RegisterUser(ctx context.Context, db *sql.DB, u *iam.User) (err error) {
+func RegisterUser(ctx context.Context, db sqlite3.DB, u *iam.User) (err error) {
 	// begin
 	tx, err := db.Begin()
 	if err != nil {
@@ -57,7 +56,7 @@ VALUES (?, ?)
 }
 
 // ExistingProfile will return a profile if one exists for a given oauth id
-func ExistingProfile(ctx context.Context, db *sql.DB, oauthId oauth2.ID) (*iam.Profile, error) {
+func ExistingProfile(ctx context.Context, db sqlite3.DB, oauthId oauth2.ID) (*iam.Profile, error) {
 	var p iam.Profile
 	err := db.QueryRowContext(ctx, `
 SELECT p.id, p.login, p.photo_url, p.name
